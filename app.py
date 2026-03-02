@@ -33,9 +33,12 @@ from ultralytics import YOLO
 # --- STEP 2: CACHED MODEL LOADING ---
 import os
 
-@st.cache_resource
+@st.cache_resource(show_spinner=True)
 def get_model():
     model_path = os.path.join(os.path.dirname(__file__), "best.pt")
+    if not os.path.exists(model_path):
+        st.error("Model file (best.pt) not found.")
+        return None
     return YOLO(model_path)
 
 model = get_model()
@@ -133,39 +136,41 @@ if uploaded_file:
             st.error("⚠️ Data Deficiency: Low quality image detected [Section 3.2].")
 
     if st.button("🔍 EXECUTE CLINICAL DIAGNOSTIC"):
-        with st.spinner("AI analyzing bone structure..."):
-            if model is not None:
-    results = model.predict(source=np.array(image), conf=conf_level)
-else:
-    st.error("Model not loaded. Please check deployment files.")
-    st.stop()
-            res_plotted = results[0].plot()
-            
-            with col2:
-                st.subheader("🛡️ AI Findings")
-                st.image(res_plotted, use_container_width=True)
-                
-                detections = results[0].boxes
-                if len(detections) > 0:
-                    report_data = []
-                    for box in detections:
-                        report_data.append({
-                            "Clinical Finding": model.names[int(box.cls[0])].upper(), 
-                            "Confidence Score": f"{float(box.conf[0]):.2%}"
-                        })
-                    df = pd.DataFrame(report_data)
-                    st.table(df) # Force visible table
-                    
-                    # Generate and Download PDF Report (Section 3.6)
-                    pdf_bytes = generate_clinical_report(user_role, q_score, df)
-                    st.download_button(
-                        label="📥 Download Detailed Clinical Report (PDF)",
-                        data=pdf_bytes,
-                        file_name="FractureAI_Clinical_Report.pdf",
-                        mime="application/pdf"
-                    )
-                else:
-                    st.success("✅ Analysis Complete: No significant anomalies detected.")
+    with st.spinner("AI analyzing bone structure..."):
+        if model is None:
+            st.error("❌ Model not loaded. Check best.pt file in GitHub repository.")
+            st.stop()
+
+        # Run prediction safely
+        results = model.predict(source=np.array(image), conf=conf_level)
+        res_plotted = results[0].plot()
+
+        with col2:
+            st.subheader("🛡️ AI Findings")
+            st.image(res_plotted, use_container_width=True)
+
+            detections = results[0].boxes
+            if len(detections) > 0:
+                report_data = []
+                for box in detections:
+                    report_data.append({
+                        "Clinical Finding": model.names[int(box.cls[0])].upper(),
+                        "Confidence Score": f"{float(box.conf[0]):.2%}"
+                    })
+
+                df = pd.DataFrame(report_data)
+                st.table(df)
+
+                # PDF (your existing feature)
+                pdf_bytes = generate_clinical_report(user_role, q_score, df)
+                st.download_button(
+                    label="📥 Download Detailed Clinical Report (PDF)",
+                    data=pdf_bytes,
+                    file_name="FractureAI_Clinical_Report.pdf",
+                    mime="application/pdf"
+                )
+            else:
+                st.success("✅ Analysis Complete: No significant anomalies detected.")
 
 st.markdown("---")
 st.caption("© 2026 Monika | BML Munjal University | Professional CDSS Project for Akoode Technology")
