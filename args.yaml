@@ -1,7 +1,7 @@
 task: detect
 mode: train
-model: /cluster/home/ammaa/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/notebooks/YOLOv10/runs/detect/x/weights/last.pt
-data: /cluster/home/ammaa/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/GRAZPEDWRI-DX/meta.yaml
+model: /cluster/home/monika/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/notebooks/YOLOv10/runs/detect/x/weights/last.pt
+data: /cluster/home/monika/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/GRAZPEDWRI-DX/meta.yaml
 epochs: 100
 time: null
 patience: 100
@@ -24,7 +24,7 @@ single_cls: false
 rect: false
 cos_lr: false
 close_mosaic: 10
-resume: /cluster/home/ammaa/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/notebooks/YOLOv10/runs/detect/x/weights/last.pt
+resume: /cluster/home/monika/Downloads/Projects/Object-Detection-GRAZPEDWRI-DX/notebooks/YOLOv10/runs/detect/x/weights/last.pt
 amp: true
 fraction: 1.0
 profile: false
