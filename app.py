@@ -18,7 +18,7 @@ torch.load = patched_load
 # --- STEP 2: CACHED MODEL LOADING ---
 @st.cache_resource
 def get_model():
-    return YOLOv10("best.pt")
+    return YOLO("best.pt")
 
 model = get_model()
 
