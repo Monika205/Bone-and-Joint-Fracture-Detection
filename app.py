@@ -4,16 +4,27 @@ import numpy as np
 from PIL import Image, ImageStat
 import pandas as pd
 from fpdf import FPDF
+import os 
+
+# --- STEP 2: SAFE CACHED MODEL LOADING (STREAMLIT CLOUD FIX) ---
 import os
 
-# --- STEP 1: PYTORCH SECURITY PATCH ---
-import torch.serialization
-torch.serialization.weights_only_default = False 
-original_load = torch.load
-def patched_load(*args, **kwargs):
-    kwargs['weights_only'] = False
-    return original_load(*args, **kwargs)
-torch.load = patched_load
+@st.cache_resource(show_spinner=True)
+def get_model():
+    model_path = os.path.join(os.path.dirname(__file__), "best.pt")
+    
+    if not os.path.exists(model_path):
+        st.error("Model file (best.pt) not found in repository.")
+        return None
+    
+    try:
+        model = YOLO(model_path)
+        return model
+    except Exception as e:
+        st.error(f"Model loading failed: {e}")
+        return None
+
+model = get_model()
 
 
 # ✅ IMPORT YOLO HERE (AFTER PATCH)
@@ -123,7 +134,11 @@ if uploaded_file:
 
     if st.button("🔍 EXECUTE CLINICAL DIAGNOSTIC"):
         with st.spinner("AI analyzing bone structure..."):
-            results = model.predict(source=np.array(image), conf=conf_level)
+            if model is not None:
+    results = model.predict(source=np.array(image), conf=conf_level)
+else:
+    st.error("Model not loaded. Please check deployment files.")
+    st.stop()
             res_plotted = results[0].plot()
             
             with col2:
