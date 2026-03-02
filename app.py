@@ -16,9 +16,13 @@ def patched_load(*args, **kwargs):
 torch.load = patched_load
 
 # --- STEP 2: CACHED MODEL LOADING ---
+import os
+from ultralytics import YOLO
+
 @st.cache_resource
 def get_model():
-    return YOLO("best.pt")
+    model_path = os.path.join(os.path.dirname(__file__), "best.pt")
+    return YOLO(model_path)
 
 model = get_model()
 
