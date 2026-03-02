@@ -4,9 +4,9 @@ import numpy as np
 from PIL import Image, ImageStat
 import pandas as pd
 from fpdf import FPDF
-from ultralytics import YOLO
+import os
 
-# --- STEP 1: PYTORCH 2.6 SECURITY OVERRIDE ---
+# --- STEP 1: PYTORCH SECURITY PATCH ---
 import torch.serialization
 torch.serialization.weights_only_default = False 
 original_load = torch.load
@@ -15,9 +15,12 @@ def patched_load(*args, **kwargs):
     return original_load(*args, **kwargs)
 torch.load = patched_load
 
+
+# ✅ IMPORT YOLO HERE (AFTER PATCH)
+from ultralytics import YOLO
+
 # --- STEP 2: CACHED MODEL LOADING ---
 import os
-from ultralytics import YOLO
 
 @st.cache_resource
 def get_model():
