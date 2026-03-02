@@ -136,7 +136,7 @@ if uploaded_file:
             st.error("⚠️ Data Deficiency: Low quality image detected [Section 3.2].")
 
     if st.button("🔍 EXECUTE CLINICAL DIAGNOSTIC"):
-    with st.spinner("AI analyzing bone structure..."):
+       with st.spinner("AI analyzing bone structure..."):
         if model is None:
             st.error("❌ Model not loaded. Check best.pt file in GitHub repository.")
             st.stop()
