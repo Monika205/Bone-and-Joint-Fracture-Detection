@@ -1,4 +1,12 @@
-ultralytics
-streamlit
-opencv-python-headless
-pillow
+# Web Framework
+streamlit==1.31.0
+
+# AI Model (YOLOv10 Support)
+ultralytics==8.3.0
+
+# Critical Fix for Cloud (No GUI needed)
+opencv-python-headless==4.8.0.74
+
+# Data & Image processing (Fixed to avoid Numpy 2.0 crash)
+numpy<2.0.0
+pillow>=10.0.0
