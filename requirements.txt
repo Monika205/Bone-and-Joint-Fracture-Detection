@@ -1,8 +1,8 @@
-# Use a specific Numpy version to avoid the 2.0 crash
+# Fixed Numpy version to prevent crashes
 numpy==1.26.4
-# Use 'headless' to prevent the libGL error on the server
-opencv-python-headless==4.8.0.74
-# Stability for YOLOv10
-ultralytics==8.3.0
-streamlit==1.31.0
-pillow==10.2.0
+# Headless version is required for Cloud servers (no GUI)
+opencv-python-headless
+# Core AI engine
+ultralytics
+streamlit
+pillow
