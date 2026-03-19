@@ -1,10 +1,8 @@
-# Fixed version to prevent the YOLOv10/Numpy 2.0 crash
+# Use a specific Numpy version to avoid the 2.0 crash
 numpy==1.26.4
-
-# CRITICAL: 'headless' version prevents the libGL error on servers
+# Use 'headless' to prevent the libGL error on the server
 opencv-python-headless==4.8.0.74
-
-# Stable versions for the Bone & Joint model
+# Stability for YOLOv10
 ultralytics==8.3.0
 streamlit==1.31.0
 pillow==10.2.0
