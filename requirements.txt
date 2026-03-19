@@ -1,8 +1,8 @@
-# Fixed Numpy version to prevent crashes
-numpy==1.26.4
-# Headless version is required for Cloud servers (no GUI)
+streamlit==1.32.0
+tensorflow==2.15.0
+keras==2.15.0
+numpy==1.24.3
 opencv-python-headless
-# Core AI engine
-ultralytics
-streamlit
-pillow
+Pillow
+scikit-learn
+matplotlib
