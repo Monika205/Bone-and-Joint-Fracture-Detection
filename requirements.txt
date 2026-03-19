@@ -1,12 +1,10 @@
-# Web Framework
-streamlit==1.31.0
+# Fixed version to prevent the YOLOv10/Numpy 2.0 crash
+numpy==1.26.4
 
-# AI Model (YOLOv10 Support)
-ultralytics==8.3.0
-
-# Critical Fix for Cloud (No GUI needed)
+# CRITICAL: 'headless' version prevents the libGL error on servers
 opencv-python-headless==4.8.0.74
 
-# Data & Image processing (Fixed to avoid Numpy 2.0 crash)
-numpy<2.0.0
-pillow>=10.0.0
+# Stable versions for the Bone & Joint model
+ultralytics==8.3.0
+streamlit==1.31.0
+pillow==10.2.0
