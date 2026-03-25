@@ -1,9 +1,9 @@
 import streamlit as st
 import os
 
-# --- STEP 1: PYTORCH SECURITY FIX ---
+# --- STEP 1: PYTORCH SECURITY BYPASS ---
+import torch
 try:
-    import torch
     from torch.serialization import add_safe_globals
     add_safe_globals([
         'ultralytics.nn.tasks.DetectionModel',
@@ -25,21 +25,9 @@ import pandas as pd
 from PIL import Image
 from ultralytics import YOLO
 
-# --- STEP 3: UI CONFIGURATION ---
-st.set_page_config(page_title="FractureAI | Bone & Joint", page_icon="🦴", layout="wide")
+# --- STEP 3: UI & MODEL ---
+st.set_page_config(page_title="FractureAI", page_icon="🦴", layout="wide")
 
-st.markdown("""
-    <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { 
-        width: 100%; border-radius: 8px; height: 3.5em; 
-        background-color: #2E86C1; color: white; font-weight: bold; border: none;
-    }
-    .stButton>button:hover { background-color: #21618C; color: white; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- STEP 4: MODEL LOADING ---
 @st.cache_resource
 def load_bone_model():
     model_path = "best.pt"
@@ -49,49 +37,27 @@ def load_bone_model():
 
 model = load_bone_model()
 
-# --- STEP 5: INTERFACE ---
-st.title("🏥 Bone & Joint Fracture Detection System")
-st.subheader("Clinical Decision Support System (CDSS) - YOLOv10")
+# --- STEP 4: MAIN APP ---
+st.title("🏥 Bone & Joint Fracture Detection")
 st.markdown("---")
 
 if model is None:
-    st.error("❌ 'best.pt' not found. Ensure it's in your main GitHub folder.")
+    st.error("❌ 'best.pt' not found in GitHub!")
     st.stop()
 
-col1, col2 = st.columns([1, 1], gap="large")
+uploaded_file = st.file_uploader("Upload X-ray", type=["jpg", "jpeg", "png"])
 
-with col1:
-    uploaded_file = st.file_uploader("Upload Radiograph", type=["jpg", "jpeg", "png"])
-    if uploaded_file:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Original X-ray", use_container_width=True)
-
-# --- STEP 6: DIAGNOSTIC ANALYSIS ---
 if uploaded_file is not None:
-    if st.button("🔍 Run Full Diagnostic Analysis"):
-        with st.spinner('Analyzing skeletal structure...'):
-            img_array = np.array(image.convert("RGB"))
-            img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-            
-            # Prediction
-            results = model.predict(source=img_cv, conf=0.25)
-            res_plotted = results[0].plot()
-            
-            with col2:
-                st.markdown("### 🎯 Detection Map")
-                st.image(res_plotted, caption="Model Findings", use_container_width=True)
-                
-                boxes = results[0].boxes
-                if len(boxes) > 0:
-                    st.success(f"✅ Total Findings: {len(boxes)}")
-                    labels = [model.names[int(c)] for c in boxes.cls]
-                    st.write("**Analysis Summary:**")
-                    st.table(pd.Series(labels).value_counts())
-                else:
-                    st.info("No anomalies detected.")
-
-# --- STEP 7: CREDITS ---
-st.sidebar.image("https://www.bml.edu.in/wp-content/uploads/2023/04/BML-Logo.png", width=150)
-st.sidebar.markdown("---")
-st.sidebar.write("👤 **Lead Developer:** Monika")
-st.sidebar.write("🎓 **Institution:** BML Munjal University")
+    image = Image.open(uploaded_file)
+    if st.button("🔍 Run Diagnostic Analysis"):
+        img_cv = cv2.cvtColor(np.array(image.convert("RGB")), cv2.COLOR_RGB2BGR)
+        results = model.predict(source=img_cv, conf=0.25)
+        
+        st.image(results[0].plot(), caption="Detection Results", use_container_width=True)
+        
+        if len(results[0].boxes) > 0:
+            labels = [model.names[int(c)] for c in results[0].boxes.cls]
+            st.success(f"Findings: {len(labels)}")
+            st.table(pd.Series(labels).value_counts())
+        else:
+            st.info("No anomalies detected.")
