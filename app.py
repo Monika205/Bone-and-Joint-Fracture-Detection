@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-# --- STEP 1: PYTORCH SECURITY FIX (MUST BE FIRST) ---
+# --- STEP 1: PYTORCH SECURITY FIX ---
 try:
     import torch
     from torch.serialization import add_safe_globals
@@ -49,31 +49,31 @@ def load_bone_model():
 
 model = load_bone_model()
 
-# --- STEP 5: MAIN INTERFACE ---
+# --- STEP 5: INTERFACE ---
 st.title("🏥 Bone & Joint Fracture Detection System")
-st.subheader("Clinical Decision Support System (CDSS) - Powered by YOLOv10")
+st.subheader("Clinical Decision Support System (CDSS) - YOLOv10")
 st.markdown("---")
 
 if model is None:
-    st.error("❌ 'best.pt' file not found. Please upload it to your GitHub root folder.")
+    st.error("❌ 'best.pt' not found. Ensure it's in your main GitHub folder.")
     st.stop()
 
 col1, col2 = st.columns([1, 1], gap="large")
 
 with col1:
-    uploaded_file = st.file_uploader("Upload Radiograph (JPG/PNG)", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Upload Radiograph", type=["jpg", "jpeg", "png"])
     if uploaded_file:
         image = Image.open(uploaded_file)
         st.image(image, caption="Original X-ray", use_container_width=True)
 
-# --- STEP 6: ACCURACY & DETECTION ---
+# --- STEP 6: DIAGNOSTIC ANALYSIS ---
 if uploaded_file is not None:
-    if st.button("🔍 Run Diagnostic Analysis"):
-        with st.spinner('Analyzing skeletal integrity...'):
+    if st.button("🔍 Run Full Diagnostic Analysis"):
+        with st.spinner('Analyzing skeletal structure...'):
             img_array = np.array(image.convert("RGB"))
             img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             
-            # Prediction with standard threshold for accuracy
+            # Prediction
             results = model.predict(source=img_cv, conf=0.25)
             res_plotted = results[0].plot()
             
@@ -85,12 +85,12 @@ if uploaded_file is not None:
                 if len(boxes) > 0:
                     st.success(f"✅ Total Findings: {len(boxes)}")
                     labels = [model.names[int(c)] for c in boxes.cls]
-                    st.write("**Analysis Summary Table:**")
+                    st.write("**Analysis Summary:**")
                     st.table(pd.Series(labels).value_counts())
                 else:
-                    st.info("No skeletal anomalies detected at this confidence level.")
+                    st.info("No anomalies detected.")
 
-# --- STEP 7: SIDEBAR ---
+# --- STEP 7: CREDITS ---
 st.sidebar.image("https://www.bml.edu.in/wp-content/uploads/2023/04/BML-Logo.png", width=150)
 st.sidebar.markdown("---")
 st.sidebar.write("👤 **Lead Developer:** Monika")
