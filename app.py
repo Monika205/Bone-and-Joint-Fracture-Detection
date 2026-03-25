@@ -1,10 +1,10 @@
 import streamlit as st
 import os
 
-# --- STEP 1: PYTORCH SECURITY OVERRIDE (MUST BE FIRST) ---
-# This prevents the "UnpicklingError" on the server
+# --- STEP 1: PYTORCH SECURITY FIX ---
+# This MUST happen before any other AI imports
+import torch
 try:
-    import torch
     from torch.serialization import add_safe_globals
     add_safe_globals([
         'ultralytics.nn.tasks.DetectionModel',
@@ -16,16 +16,19 @@ try:
         'ultralytics.nn.modules.conv.Concat'
     ])
 except Exception:
-    try:
-        import torch.serialization
-        torch.serialization.weights_only_default = False
-    except:
-        pass
+    import torch.serialization
+    torch.serialization.weights_only_default = False
 
-# --- STEP 2: UI CONFIGURATION ---
+# --- STEP 2: CORE IMPORTS ---
+import cv2
+import numpy as np
+import pandas as pd
+from PIL import Image
+from ultralytics import YOLO
+
+# --- STEP 3: UI CONFIGURATION ---
 st.set_page_config(page_title="FractureAI | Bone & Joint", page_icon="🦴", layout="wide")
 
-# Custom Styling
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
@@ -37,33 +40,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- STEP 3: CACHED IMPORTS & MODEL LOADING ---
+# --- STEP 4: CACHED MODEL LOADING ---
 @st.cache_resource
-def load_resources():
-    # Import these inside the function to prevent line 4 crash during boot
-    import cv2
-    import numpy as np
-    from PIL import Image
-    import pandas as pd
-    from ultralytics import YOLO
-    
+def load_bone_model():
     model_path = "best.pt"
     if not os.path.exists(model_path):
-        return None, None, None, None, None
-        
-    model = YOLO(model_path)
-    return model, cv2, np, Image, pd
+        st.error(f"❌ Weights file '{model_path}' not found!")
+        return None
+    return YOLO(model_path)
 
-model, cv2, np, Image, pd = load_resources()
+model = load_bone_model()
 
-# --- STEP 4: APP HEADER ---
+# --- STEP 5: APP INTERFACE ---
 st.title("🏥 Bone & Joint Fracture Detection System")
 st.subheader("Clinical Decision Support System (CDSS) powered by YOLOv10")
 st.markdown("---")
-
-if model is None:
-    st.error("❌ Model 'best.pt' not found or failed to load. Please check your GitHub repo.")
-    st.stop()
 
 col1, col2 = st.columns([1, 1], gap="large")
 
@@ -75,38 +66,34 @@ with col1:
         image = Image.open(uploaded_file)
         st.image(image, caption="Original X-ray Image", use_container_width=True)
 
-# --- STEP 5: INFERENCE & RESULTS ---
+# --- STEP 6: INFERENCE & RESULTS ---
 if uploaded_file is not None:
-    with col1:
-        analyze_btn = st.button("🔍 Run Diagnostic Analysis")
+    if st.button("🔍 Run Diagnostic Analysis"):
+        if model:
+            with st.spinner('Analyzing bone structures...'):
+                # Image Conversion
+                img_array = np.array(image.convert("RGB"))
+                img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    if analyze_btn:
-        with st.spinner('Analyzing bone structures...'):
-            # Convert PIL to OpenCV format
-            img_array = np.array(image.convert("RGB"))
-            img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-
-            # Run YOLOv10 Inference
-            results = model.predict(source=img_cv, conf=0.25)
-            res_plotted = results[0].plot()
-            
-            with col2:
-                st.markdown("### 🎯 Detection Results")
-                st.image(res_plotted, caption="Model Predictions", use_container_width=True)
+                # Run YOLOv10
+                results = model.predict(source=img_cv, conf=0.25)
+                res_plotted = results[0].plot()
                 
-                boxes = results[0].boxes
-                if len(boxes) > 0:
-                    st.success(f"✅ Findings Detected: {len(boxes)}")
-                    detected_classes = [model.names[int(c)] for c in boxes.cls]
-                    counts = pd.Series(detected_classes).value_counts()
-                    st.write("**Analysis Summary:**")
-                    st.dataframe(counts)
-                else:
-                    st.info("No fractures or significant bone anomalies detected.")
+                with col2:
+                    st.markdown("### 🎯 Detection Results")
+                    st.image(res_plotted, caption="Model Predictions", use_container_width=True)
+                    
+                    boxes = results[0].boxes
+                    if len(boxes) > 0:
+                        st.success(f"✅ Findings Detected: {len(boxes)}")
+                        labels = [model.names[int(c)] for c in boxes.cls]
+                        st.write("**Analysis Summary:**")
+                        st.table(pd.Series(labels).value_counts())
+                    else:
+                        st.info("No fractures or anomalies detected.")
 
-# --- STEP 6: SIDEBAR / CREDITS ---
+# --- STEP 7: SIDEBAR ---
 st.sidebar.image("https://www.bml.edu.in/wp-content/uploads/2023/04/BML-Logo.png", width=150)
-st.sidebar.title("System Information")
 st.sidebar.markdown("---")
 st.sidebar.write("👤 **Lead Developer:** Monika")
 st.sidebar.write("🎓 **Institution:** BML Munjal University")
