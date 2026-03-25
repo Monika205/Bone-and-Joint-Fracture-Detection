@@ -5,9 +5,8 @@ import cv2
 import numpy as np
 from PIL import Image
 import pandas as pd
-from fpdf import FPDF
 
-# --- STEP 1: PYTORCH SECURITY OVERRIDE ---
+# --- STEP 1: PYTORCH SECURITY & YOLOv10 CONFIG ---
 try:
     from torch.serialization import add_safe_globals
     add_safe_globals([
@@ -26,8 +25,9 @@ except Exception:
 from ultralytics import YOLO
 
 # --- STEP 2: UI CONFIGURATION ---
-st.set_page_config(page_title="FractureAI | Bone & Joint", page_icon="🦴", layout="wide")
+st.set_page_config(page_title="FractureAI | High Accuracy", page_icon="🦴", layout="wide")
 
+# Custom Styling for Professional Look
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
@@ -48,31 +48,35 @@ def load_bone_model():
     try:
         return YOLO(model_path)
     except Exception as e:
-        st.error(f"❌ Initialization Error: {e}")
+        st.error(f"❌ Model Error: {e}")
         return None
 
 model = load_bone_model()
 
-# --- STEP 4: SIDEBAR CONTROLS (NEW) ---
+# --- STEP 4: ACCURACY CONTROLS (SIDEBAR) ---
 st.sidebar.image("https://www.bml.edu.in/wp-content/uploads/2023/04/BML-Logo.png", width=150)
-st.sidebar.title("🛠️ Analysis Settings")
+st.sidebar.title("🛠️ Accuracy Settings")
 
-# This slider lets you see "hidden" detections if the model is less than 25% sure
+# IMPORTANT: Adjust this slider if fractures aren't appearing
 conf_threshold = st.sidebar.slider(
     "Confidence Threshold", 
-    min_value=0.05, 
-    max_value=1.0, 
-    value=0.25, 
-    help="Lower values show more (but less certain) detections. Higher values show only high-certainty detections."
+    0.05, 1.0, 0.25, 
+    help="Lower this if the model misses a fracture. Raise it to remove 'text' noise."
+)
+
+iou_threshold = st.sidebar.slider(
+    "Overlapping (IOU) Threshold", 
+    0.1, 1.0, 0.45, 
+    help="Higher values allow boxes to overlap more (useful for complex fractures)."
 )
 
 st.sidebar.markdown("---")
 st.sidebar.write("👤 **Lead Developer:** Monika")
 st.sidebar.write("🎓 **Institution:** BML Munjal University")
 
-# --- STEP 5: APP HEADER ---
+# --- STEP 5: MAIN APP INTERFACE ---
 st.title("🏥 Bone & Joint Fracture Detection System")
-st.subheader("Clinical Decision Support System (CDSS) powered by YOLOv10")
+st.subheader("Advanced Diagnostic Analysis (YOLOv10)")
 st.markdown("---")
 
 col1, col2 = st.columns([1, 1], gap="large")
@@ -84,46 +88,51 @@ with col1:
         image = Image.open(uploaded_file)
         st.image(image, caption="Original X-ray Image", use_container_width=True)
 
-# --- STEP 6: INFERENCE & DETAILED RESULTS ---
+# --- STEP 6: DIAGNOSTIC INFERENCE ---
 if uploaded_file is not None:
     with col1:
-        analyze_btn = st.button("🔍 Run Diagnostic Analysis")
+        analyze_btn = st.button("🔍 Run Full Diagnostic Analysis")
 
     if analyze_btn:
         if model:
-            with st.spinner('Analyzing bone structures...'):
+            with st.spinner('Analyzing bone integrity...'):
                 img_array = np.array(image.convert("RGB"))
                 img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-                # Predict using the slider value
-                results = model.predict(source=img_cv, conf=conf_threshold)
+                # Predict with custom thresholds for better accuracy
+                results = model.predict(
+                    source=img_cv, 
+                    conf=conf_threshold, 
+                    iou=iou_threshold
+                )
                 res_plotted = results[0].plot()
                 
                 with col2:
                     st.markdown("### 🎯 Detection Results")
-                    st.image(res_plotted, caption="Model Predictions", use_container_width=True)
+                    st.image(res_plotted, caption="Diagnostic Map", use_container_width=True)
                     
                     boxes = results[0].boxes
                     if len(boxes) > 0:
                         st.success(f"✅ Findings Detected: {len(boxes)}")
                         
-                        # BUILD DETAILED DATA FRAME
-                        data = []
+                        # BUILD ACCURATE RESULTS TABLE
+                        report_data = []
                         for box in boxes:
-                            cls_id = int(box.cls[0])
-                            label = model.names[cls_id]
-                            conf = float(box.conf[0])
-                            data.append({"Finding": label, "Confidence (%)": f"{conf*100:.1f}%"})
+                            label = model.names[int(box.cls[0])]
+                            accuracy = float(box.conf[0])
+                            report_data.append({
+                                "Finding Type": label, 
+                                "Accuracy (Confidence)": f"{accuracy*100:.2f}%"
+                            })
                         
-                        df_details = pd.DataFrame(data)
+                        df_report = pd.DataFrame(report_data)
+                        st.write("**Full Analysis Report:**")
+                        st.dataframe(df_report, use_container_width=True)
                         
-                        st.write("**Detailed Diagnostic Report:**")
-                        st.dataframe(df_details, use_container_width=True)
-                        
-                        # Warning if only 'text' is found
-                        if all(df_details["Finding"] == "text"):
-                            st.warning("Note: Only anatomical markers (text) detected. No fractures identified.")
+                        # Clinical Note if only text is found
+                        if all(df_report["Finding Type"] == "text"):
+                            st.warning("⚠️ Note: Only marker text found. No skeletal fractures identified.")
                     else:
-                        st.info("No fractures or significant bone anomalies detected at this confidence level.")
+                        st.info("No anomalies detected at this sensitivity level.")
         else:
-            st.error("Model is not loaded. Check 'best.pt' in your repo.")
+            st.error("Weights file 'best.pt' missing or corrupted.")
