@@ -1,8 +1,9 @@
 opencv-python-headless
 ultralytics
 streamlit
+pandas
 fpdf
 pillow
 numpy
-torch==2.5.1
+torch>=2.4.0
 torchvision
