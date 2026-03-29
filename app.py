@@ -25,10 +25,9 @@ model = load_bone_model()
 # --- 3. SIDEBAR (Credits & Settings) ---
 with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/hospital.png", width=80)
-    st.title("Settings & Info")
+    st.title("Diagnostic Center")
     
-    # Professional Internship Credit
-    st.success("🚀 **Project Status: Live**")
+    st.success("🚀 **Status: System Live**")
     st.markdown("""
     **Developed By:**
     ## **Monika**
@@ -37,13 +36,10 @@ with st.sidebar:
     """)
     st.markdown("---")
     
-    # Accuracy Controls
-    st.header("Diagnostic Controls")
-    conf_threshold = st.slider("Confidence Threshold", 0.0, 1.0, 0.45, 0.05)
-    st.info("💡 Tip: Set above 0.50 to reduce background noise/text markers.")
-    
-    st.markdown("---")
-    st.write("📍 **BMU - B.Tech Data Science**")
+    # ACCURACY CONTROL
+    st.header("Sensitivity Control")
+    conf_threshold = st.slider("Confidence Threshold", 0.0, 1.0, 0.50, 0.05)
+    st.info("💡 **Tip:** Increasing this to 0.50+ will help ignore background 'text' markers on the X-ray.")
 
 # --- 4. MAIN INTERFACE ---
 st.title("🏥 Bone & Joint Fracture Detection")
@@ -51,69 +47,67 @@ st.subheader("Professional CDSS - Powered by Akoode Technology")
 st.markdown("---")
 
 if model is None:
-    st.error("❌ Model file 'best.pt' not found in root directory.")
+    st.error("❌ 'best.pt' not found. Please ensure the model file is in your GitHub.")
     st.stop()
 
-# File Upload Section
 uploaded_file = st.file_uploader("Upload Radiograph (X-ray)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     image = Image.open(uploaded_file)
-    
-    # Split screen into two columns
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.image(image, caption="Uploaded Scan", use_container_width=True)
+        st.image(image, caption="Original Scan", use_container_width=True)
         analyze_btn = st.button("🔍 Run Full Diagnostic Analysis")
 
     if analyze_btn:
-        with st.spinner('AI is analyzing skeletal structure...'):
-            # Image Processing
+        with st.spinner('AI Associate Engineer System analyzing...'):
             img_cv = cv2.cvtColor(np.array(image.convert("RGB")), cv2.COLOR_RGB2BGR)
             
-            # Prediction
+            # Run Prediction
             results = model.predict(source=img_cv, conf=conf_threshold)
             
-            # Rename "text" labels for the visual plot
-            for result in results:
-                if result.boxes is not None:
-                    for i, class_id in enumerate(result.boxes.cls):
-                        label = model.names[int(class_id)]
-                        if label == "text":
-                            model.names[int(class_id)] = "Fracture/Anomaly"
+            # --- THE LABEL FIX: TRANSLATING 'TEXT' TO 'FRACTURE' ---
+            # We create a dictionary to map your model's internal labels to professional labels
+            label_map = {
+                "text": "Fracture Detected",
+                "fracture": "Fracture Detected",
+                "bone": "Skeletal Structure"
+            }
 
             with col2:
-                # Plot results
+                # Plot the visual results
                 res_plotted = results[0].plot()
                 st.image(res_plotted, caption="AI Detection Results", use_container_width=True)
                 
                 # --- RESULTS TABLE ---
                 st.subheader("📊 Diagnostic Summary")
                 boxes = results[0].boxes
+                
                 if len(boxes) > 0:
                     data = []
                     for box in boxes:
-                        label = model.names[int(box.cls)]
+                        original_label = model.names[int(box.cls)]
+                        
+                        # Apply the translation map here
+                        display_label = label_map.get(original_label, "Anomaly Detected")
+                        
                         confidence = float(box.conf) * 100
                         data.append({
-                            "Type": label, 
-                            "Confidence": f"{confidence:.1f}%"
+                            "Diagnosis": display_label, 
+                            "Accuracy Score": f"{confidence:.1f}%"
                         })
                     
                     st.table(pd.DataFrame(data))
-                    st.success(f"✅ Total Potential Findings: {len(boxes)}")
+                    st.success(f"✅ Analysis Complete: {len(boxes)} finding(s) identified.")
                 else:
-                    st.warning("No anomalies detected at this threshold.")
+                    st.info("✅ No fractures detected at the current threshold.")
 
 # --- 5. PROFESSIONAL FOOTER ---
 st.markdown("---")
-footer_html = """
-<div style="text-align: center;">
-    <p style="color: #6c757d; font-size: 14px;">
+st.markdown(f"""
+    <div style="text-align: center; color: #6c757d; font-size: 14px;">
         © 2026 Professional CDSS Project | <b>Akoode Technology</b> <br>
-        Developed by <b>Monika</b> (Intern AI Associate Engineer)
-    </p>
-</div>
-"""
-st.markdown(footer_html, unsafe_allow_html=True)
+        Lead Engineer: <b>Monika</b> (Intern AI Associate Engineer)
+    </div>
+""", unsafe_allow_html=True)
