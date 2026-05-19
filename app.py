@@ -103,9 +103,11 @@ if uploaded_file:
 # --- 5. PROFESSIONAL FOOTER ---
 st.markdown("---")
 
-st.markdown("""
+footer = """
 <div style="text-align: center; color: #6c757d; font-size: 14px;">
     &copy; 2026 Professional CDSS Project <br>
     Lead Engineer: <b>Monika</b>
 </div>
-""", unsafe_allow_html=True)
+"""
+
+st.markdown(footer, unsafe_allow_html=True)
