@@ -8,7 +8,7 @@ from ultralytics import YOLO
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="FractureAI | Akoode Technology", 
+    page_title="FractureAI 
     page_icon="🏥", 
     layout="wide"
 )
@@ -31,9 +31,6 @@ with st.sidebar:
     st.markdown("""
     **Developed By:**
     ## **Monika**
-    *Intern AI Associate Engineer*
-    **Akoode Technology**
-    """)
     st.markdown("---")
     
     # ACCURACY CONTROL
@@ -43,7 +40,7 @@ with st.sidebar:
 
 # --- 4. MAIN INTERFACE ---
 st.title("🏥 Bone & Joint Fracture Detection")
-st.subheader("Professional CDSS - Powered by Akoode Technology")
+st.subheader("Professional CDSS")
 st.markdown("---")
 
 if model is None:
@@ -107,7 +104,7 @@ if uploaded_file:
 st.markdown("---")
 st.markdown(f"""
     <div style="text-align: center; color: #6c757d; font-size: 14px;">
-        © 2026 Professional CDSS Project | <b>Akoode Technology</b> <br>
-        Lead Engineer: <b>Monika</b> (Intern AI Associate Engineer)
+        © 2026 Professional CDSS Project <br>
+        Lead Engineer: <b>Monika</b> 
     </div>
 """, unsafe_allow_html=True)
