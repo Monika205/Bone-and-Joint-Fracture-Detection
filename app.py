@@ -102,9 +102,10 @@ if uploaded_file:
 
 # --- 5. PROFESSIONAL FOOTER ---
 st.markdown("---")
-st.markdown(f"""
+
+st.markdown("""
     <div style="text-align: center; color: #6c757d; font-size: 14px;">
-        © 2026 Professional CDSS Project <br>
-        Lead Engineer: <b>Monika</b> 
+        &copy; 2026 Professional CDSS Project <br>
+        Lead Engineer: <b>Monika</b>
     </div>
 """, unsafe_allow_html=True)
