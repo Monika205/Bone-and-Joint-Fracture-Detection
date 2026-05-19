@@ -104,8 +104,8 @@ if uploaded_file:
 st.markdown("---")
 
 st.markdown("""
-    <div style="text-align: center; color: #6c757d; font-size: 14px;">
-        &copy; 2026 Professional CDSS Project <br>
-        Lead Engineer: <b>Monika</b>
-    </div>
+<div style="text-align: center; color: #6c757d; font-size: 14px;">
+    &copy; 2026 Professional CDSS Project <br>
+    Lead Engineer: <b>Monika</b>
+</div>
 """, unsafe_allow_html=True)
