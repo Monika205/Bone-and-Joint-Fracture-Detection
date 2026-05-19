@@ -8,7 +8,7 @@ from ultralytics import YOLO
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="FractureAI 
+    page_title="FractureAI"
     page_icon="🏥", 
     layout="wide"
 )
