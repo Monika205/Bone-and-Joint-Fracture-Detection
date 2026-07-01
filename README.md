@@ -68,7 +68,7 @@ packages.txt: System-level dependencies for Linux/Streamlit Cloud.
 👩‍🔬 Research & Development
 Developed as a professional Bone and Joint diagnostic tool.
 
-Developer: Monika(For Intern opportunity at Akoode Technology)
+Developer: Monika(For Intern opportunity at Team Computers)
 
 Institute: BML Munjal University
 
